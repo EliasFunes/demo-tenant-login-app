@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+<div class="card">
+    <h5 class="card-header">Login</h5>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card" style="width: 18rem;">
+                            <img src="..." class="card-img-top" alt="..." id="qr-img-id">
+                            <div class="card-body">
+                                <h5 class="card-title">Código QR</h5>
+                                <p class="card-text">Escanear código QR para acceder.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-6">
+                <h5 class="card-title">Please insert credentials</h5>
+                <p class="card-text">Credentials require a username and password.</p>
+                <div class="row">
+                    <div class="col-12">
+                        <form id="form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">User name</label>
+                                <input type="text" class="form-control" id="username" aria-describedby="emailHelp">
+                                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+    const username = document.getElementById("username")
+    const password = document.getElementById("password")
+    const form = document.getElementById("form")
+    const qrImg = document.getElementById("qr-img-id")
+
+
+
+    // Ejemplo implementando el metodo POST:
+    async function postData(url = '', data = {}) {
+        // Opciones por defecto estan marcadas con un *
+        const response = await fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+            headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: 'follow', // manual, *follow, error
+            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    form.addEventListener("submit", function(evt) {
+        evt.preventDefault()
+        postData(
+            'http://localhost:9000/jwt/authenticate',
+            { username: username.value, password: password.value })
+            .then(data => {
+                console.log(data) // JSON data parsed by `data.json()` call
+                localStorage.setItem('Auth-Token', `Bearer ${data.token}`)
+                window.location.replace('http://localhost:9000/index.html');
+            })
+            .catch(e => {
+                console.log("error")
+                console.log(e)
+            })
+    })
+
+
+    async function getQR() {
+        //TODO: al obtener el qr necesito escanear y obtener el id del qr para conectarlo al socket para cuando se lea desde el telefono pueda enviar quien se conecto.
+        postData(
+            'http://localhost:8080/jwt/user_tenant/authenticate',
+            { username: "eliasf", password: "Admin123" }) //TODO, quitar esto que esta hardcodeado
+            .then(async data => {
+                localStorage.setItem('Tenant-Auth-Token', `Bearer ${data.token}`)
+                let token = localStorage.getItem('Tenant-Auth-Token')
+                const response = await fetch('http://localhost:8080/qr/genQR', {headers: {Authorization: token}})
+                const blob = await response.blob()
+                globalBlob = blob
+                const url = URL.createObjectURL(globalBlob/*.slice(0, 4000)*/)
+                qrImg.src = url
+            })
+            .catch(e => {
+                console.log("error en autenticacion del tenant")
+                console.log(e)
+            })
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        getQR()
+    }, false);
+
+
+</script>
+</body>
+</html>
