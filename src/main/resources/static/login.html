@@ -19,6 +19,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Código QR</h5>
                                 <p class="card-text">Escanear código QR para acceder.</p>
+                                <input type="hidden" id="id-qr">
                             </div>
                         </div>
                     </div>
@@ -52,14 +53,18 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.js" integrity="sha512-aHuAnb+FZ/yM5zYvdiA8q0sxLdsBQ3PRwO8D/08qsenCLQ2gWsosB43Cn1X8esAz0IpaC7Ns5cAPyKIdJQ0hNw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js" integrity="sha512-tL4PIUsPy+Rks1go4kQG8M8/ItpRMvKnbBjQm4d2DQnFwgcBYRRN00QdyQnWSCwNMsoY/MfJY8nHp2CzlNdtZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="text/javascript">
+    let stompClient = null;
+
     const username = document.getElementById("username")
     const password = document.getElementById("password")
     const form = document.getElementById("form")
     const qrImg = document.getElementById("qr-img-id")
-
-
 
     // Ejemplo implementando el metodo POST:
     async function postData(url = '', data = {}) {
@@ -97,9 +102,7 @@
             })
     })
 
-
     async function getQR() {
-        //TODO: al obtener el qr necesito escanear y obtener el id del qr para conectarlo al socket para cuando se lea desde el telefono pueda enviar quien se conecto.
         postData(
             'http://localhost:8080/jwt/user_tenant/authenticate',
             { username: "eliasf", password: "Admin123" }) //TODO, quitar esto que esta hardcodeado
@@ -108,9 +111,10 @@
                 let token = localStorage.getItem('Tenant-Auth-Token')
                 const response = await fetch('http://localhost:8080/qr/genQR', {headers: {Authorization: token}})
                 const blob = await response.blob()
-                globalBlob = blob
-                const url = URL.createObjectURL(globalBlob/*.slice(0, 4000)*/)
+                const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
                 qrImg.src = url
+                const idQR = await uploadQR(token, blob)
+                connect_user(token, idQR)
             })
             .catch(e => {
                 console.log("error en autenticacion del tenant")
@@ -122,6 +126,43 @@
         getQR()
     }, false);
 
+
+    async function uploadQR(token, globalBlob) {
+        const file = new File([globalBlob], "qr.png", {type: globalBlob.type});
+        const formData = new FormData()
+        formData.append('qrCodeFile', file)
+        const response = await fetch('http://localhost:8080/qr/scanQR',
+            {
+                method: "POST",
+                headers: {
+                    Authorization: token
+                },
+                body: formData
+            }
+        ).then((res) => {
+            return res.text()
+        }).catch(e => {
+            console.log("error")
+            console.log(e)
+        })
+        return response
+    }
+
+    function connect_user(token, qrId) {
+        let socket = new SockJS('http://localhost:8080/wsc');
+        stompClient = Stomp.over(socket)
+        let data = {username: "username", 'X-Authorization': token, "qrId": qrId}
+        stompClient.connect(data, (frame) => {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe("/user/topic/messages", (message) => {
+                console.log("llego un mensaje", message); //5
+                // loggear al que leyo
+            })
+        }, function(error) {
+            console.log(error);
+        })
+
+    }
 
 </script>
 </body>
