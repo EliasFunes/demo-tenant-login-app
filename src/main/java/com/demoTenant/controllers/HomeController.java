@@ -3,6 +3,7 @@ package com.demoTenant.controllers;
 import com.demoTenant.config.security.UserIdAuthenticationProvider;
 import com.demoTenant.models.User;
 import com.demoTenant.services.UserDetailsService;
+import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
 
 @Controller
@@ -63,8 +67,30 @@ public class HomeController {
         return userId.toString();
     }
 
+
+
+    //TODO: refactorizar esta funcion en un util con un try
+    private Long getUserIdFromToken(String token) {
+        String secretKey = "yourSecretKey";
+//        String server2Audience = "server2";
+
+        //TODO: el secret key deberia ser un env param.
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+//                .requireAudience(server2Audience)
+                .parseClaimsJws(token)
+                .getBody();
+
+        Long id = Long.parseLong(claims.get("userReference").toString());
+        return id;
+    }
+
+
     @PostMapping("/login_by_userId")
-    public void loginByUserId(@RequestParam("username") Long username, HttpServletResponse response) throws IOException {
+    public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response) throws IOException {
+
+        Long username = getUserIdFromToken(usernameToken);
+
         logger.info("loginByUserId: " + username.toString());
 
         User user = userDetailsService.loadByUserId(username);
