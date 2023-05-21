@@ -5,16 +5,15 @@ import com.demoTenant.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.demoTenant.models.User;
 import static java.lang.String.format;
 
 @Service
-public class JwtUserDetailsService implements UserDetailsService {
+public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
-    Logger logger = LoggerFactory.getLogger(JwtUserDetailsService.class);
+    Logger logger = LoggerFactory.getLogger(UserDetailsService.class);
 
     @Autowired
     UserRepository userRepository;

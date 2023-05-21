@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Hello MAIN</title>
 <!--  <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">-->
@@ -13,6 +13,15 @@
   enabled. Please enable
   Javascript and reload this page!</h2></noscript>
 <div id="main-content" class="container">
+  <div class="row">
+      <div class="col-xs-12">
+<!--          <div th:fragment="userinfo">-->
+              <span th:if="${user.username}">Welcome, <span th:text="${user.username}"></span>!</span>
+              <p>Your email address is <span th:text="${user.email}"></span>.</p>
+              <span th:unless="${user.username}">Not logged in</span>
+<!--          </div>-->
+      </div>
+  </div>
   <div class="row">
     <div class="col-md-6">
       <form class="form-inline">
@@ -87,13 +96,26 @@
     return response.json(); // parses JSON response into native JavaScript objects
   }
 
+  async function getWithCredentials(url = '', headers = {'Content-Type': 'application/json'}) {
+    // Opciones por defecto estan marcadas con un *
+    const response = await fetch(url, {
+      method: 'GET', // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors', // no-cors, *cors, same-origin
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'include', // include, *same-origin, omit
+      headers: headers,
+      redirect: 'follow', // manual, *follow, error
+      referrerPolicy: 'no-referrer' // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    });
+    return response.json(); // parses JSON response into native JavaScript objects
+  }
+
+
+
   modalButton.addEventListener('click', (e) => {
     myModal.toggle()
   })
 
-
-  //TODO: crea problemas con el token que se le pasa del lessor, creeria que es mejor un endpoint
-  // en el servidor que haga ya todo el proceso de relacionar utilizando las credenciales y mandando la referencia.
 
   //AJAX PARA AUTENTICAR
   form.addEventListener("submit", function(evt) {
@@ -103,11 +125,8 @@
       { username: username.value, password: password.value })
       .then(async data => {
         let lessortoken = data.token
-        let reference = await postData(
-          'http://localhost:9000/main/getUserIdReference',
-          {},
-          {'Content-Type': 'application/json', 'Authorization': localToken}
-        ).catch(e => {
+
+        let reference = await getWithCredentials('/user/id').catch(e => {
           console.log("error")
           console.log(e)
         })

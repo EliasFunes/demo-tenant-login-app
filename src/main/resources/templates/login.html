@@ -29,21 +29,21 @@
             <div class="col-6">
                 <h5 class="card-title">Please insert credentials</h5>
                 <p class="card-text">Credentials require a username and password.</p>
-                <div class="row">
-                    <div class="col-12">
-                        <form id="form">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">User name</label>
-                                <input type="text" class="form-control" id="username" aria-describedby="emailHelp">
-                                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                    </div>
+
+                <div class="container">
+                    <form class="form-signin" method="post" action="/login">
+                        <h2 class="form-signin-heading">Please sign in</h2>
+<!--                        <div class="alert alert-danger" role="alert">Bad credentials</div>        <p>-->
+                        <label for="username" class="sr-only">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Username" required="" autofocus="">
+                    </p>
+                        <p>
+                            <label for="password" class="sr-only">Password</label>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
+                        </p>
+                        <input name="_csrf" type="hidden" value="fd6972d7-4953-4eae-b5d5-1ccb78f895c9">
+                        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -53,17 +53,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.js" integrity="sha512-aHuAnb+FZ/yM5zYvdiA8q0sxLdsBQ3PRwO8D/08qsenCLQ2gWsosB43Cn1X8esAz0IpaC7Ns5cAPyKIdJQ0hNw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js" integrity="sha512-tL4PIUsPy+Rks1go4kQG8M8/ItpRMvKnbBjQm4d2DQnFwgcBYRRN00QdyQnWSCwNMsoY/MfJY8nHp2CzlNdtZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="text/javascript">
     let stompClient = null;
-
-    const username = document.getElementById("username")
-    const password = document.getElementById("password")
-    const form = document.getElementById("form")
     const qrImg = document.getElementById("qr-img-id")
 
     // Ejemplo implementando el metodo POST:
@@ -81,26 +75,9 @@
             redirect: 'follow', // manual, *follow, error
             referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
             body: JSON.stringify(data) // body data type must match "Content-Type" header
-
         });
         return response.json(); // parses JSON response into native JavaScript objects
     }
-
-    form.addEventListener("submit", function(evt) {
-        evt.preventDefault()
-        postData(
-            'http://localhost:9000/jwt/authenticate',
-            { username: username.value, password: password.value })
-            .then(data => {
-                console.log(data) // JSON data parsed by `data.json()` call
-                localStorage.setItem('Auth-Token', `Bearer ${data.token}`)
-                window.location.replace('http://localhost:9000/index.html');
-            })
-            .catch(e => {
-                console.log("error")
-                console.log(e)
-            })
-    })
 
     async function getQR() {
         postData(
@@ -151,12 +128,24 @@
     function connect_user(token, qrId) {
         let socket = new SockJS('http://localhost:8080/wsc');
         stompClient = Stomp.over(socket)
-        let data = {username: "username", 'X-Authorization': token, "qrId": qrId}
+        //En este caso el username es opcional ya que para conectar al ws server usa el token de autorizacion
+        let data = {/*username: "username", */'X-Authorization': token, "qrId": qrId}
         stompClient.connect(data, (frame) => {
             console.log('Connected: ' + frame);
             stompClient.subscribe("/user/topic/messages", (message) => {
                 console.log("llego un mensaje", message); //5
-                // loggear al que leyo
+                //TODO: ver como hacer de forma segura esto
+                // se puede utilizar un jwt firmado desde el server que solo se pueda leer en el server del tenant
+                //
+
+                console.log(message.body)
+
+                fetch(`/login_by_userId?username=${message.body}`, {method: "POST"})
+                    .then(_ =>  window.location.href = '/')
+                    .catch(error => {
+                        console.error(error);
+                    });
+
             })
         }, function(error) {
             console.log(error);
