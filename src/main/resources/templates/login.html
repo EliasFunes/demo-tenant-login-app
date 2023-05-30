@@ -41,7 +41,7 @@
                             <label for="password" class="sr-only">Password</label>
                             <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
                         </p>
-                        <input name="_csrf" type="hidden" value="fd6972d7-4953-4eae-b5d5-1ccb78f895c9">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
                         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
                     </form>
                 </div>
@@ -133,19 +133,15 @@
         stompClient.connect(data, (frame) => {
             console.log('Connected: ' + frame);
             stompClient.subscribe("/user/topic/messages", (message) => {
-                console.log("llego un mensaje", message); //5
-                //TODO: ver como hacer de forma segura esto
-                // se puede utilizar un jwt firmado desde el server que solo se pueda leer en el server del tenant
-                //
+                const csrf = document.querySelector('input[type="hidden"][name="_csrf"]').value;
 
-                console.log(message.body)
-
-                fetch(`/login_by_userId?username=${message.body}`, {method: "POST"})
+                //TODO: lo mas peligroso aqui es esta parte, el fetch, ver la forma de romper esto utilizando todo
+                // el ciclo desde el server que provee el cod QR.
+                fetch(`/login_by_userId?username=${message.body}&_csrf=${csrf}`, {method: "POST"})
                     .then(_ =>  window.location.href = '/')
                     .catch(error => {
                         console.error(error);
                     });
-
             })
         }, function(error) {
             console.log(error);

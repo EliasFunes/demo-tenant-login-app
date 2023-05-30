@@ -31,7 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //sin este no permite hacer una ajax request a los endpoints ya que desea verificar el csrf que no esta incluido en el ajax.
-        http.csrf().disable();
+        //http.csrf().disable();
 
         // Set permissions on endpoints
         http.authorizeRequests()

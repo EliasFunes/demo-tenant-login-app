@@ -1,8 +1,10 @@
 package com.demoTenant.controllers;
 
 import com.demoTenant.config.security.UserIdAuthenticationProvider;
+import com.demoTenant.dto.CreateUserRequest;
 import com.demoTenant.models.User;
 import com.demoTenant.services.UserDetailsService;
+import com.demoTenant.services.UserService;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +19,12 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import javax.xml.bind.ValidationException;
 import java.io.IOException;
+import java.util.Optional;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 
 @Controller
@@ -32,7 +36,10 @@ public class HomeController {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private UserIdAuthenticationProvider provider2;
+    private UserService userService;
+
+    @Autowired
+    private UserIdAuthenticationProvider userIdAuthenticationProvider;
 
 
 
@@ -58,6 +65,11 @@ public class HomeController {
     public String register() {
         // populate model with data if needed
         return "register";
+    }
+
+    @PostMapping("/register")
+    public Optional<User> userRegister(@RequestBody @Valid CreateUserRequest request) throws ValidationException {
+        return userService.create(request);
     }
 
     @GetMapping("/user/id")
@@ -99,7 +111,7 @@ public class HomeController {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
 
         // Authenticate using the custom authentication provider
-        Authentication result = provider2.authenticate(authentication);
+        Authentication result = userIdAuthenticationProvider.authenticate(authentication);
 
         // Set authentication in the security context
         SecurityContextHolder.getContext().setAuthentication(result);
