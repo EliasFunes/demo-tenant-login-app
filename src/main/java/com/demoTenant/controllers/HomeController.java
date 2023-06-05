@@ -5,10 +5,13 @@ import com.demoTenant.dto.CreateUserRequest;
 import com.demoTenant.models.User;
 import com.demoTenant.services.UserDetailsService;
 import com.demoTenant.services.UserService;
-import io.jsonwebtoken.Claims;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,13 +25,19 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import javax.xml.bind.ValidationException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
-import io.jsonwebtoken.Jwts;
+import org.springframework.web.client.RestTemplate;
 
 
 @Controller
 public class HomeController {
+
+    //TODO: esto no deberia ser necesario para el cliente?
+    @Autowired
+    private RestTemplate restTemplate;
 
     Logger logger = LoggerFactory.getLogger(HomeController.class);
 
@@ -57,7 +66,26 @@ public class HomeController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm() {
+    public String showLoginForm(Model model) throws URISyntaxException, JsonProcessingException {
+
+        //TODO: esto no deberia ser necesario para el cliente?
+        //TODO: Se debe obtener desde un .env
+        String url = "http://localhost:8080/jwt/user_tenant/authenticate"; // Replace with the actual URL of the server's endpoint
+
+        //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String jsonPayload = "{\"username\": \""+"eliasf"+"\", \"password\": \""+"Admin123"+"\"}";
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(new URI(url), requestEntity, String.class);
+        String data = responseEntity.getBody();
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(data);
+        String token = jsonNode.get("token").asText();
+
+        model.addAttribute("token", token);
         return "login";
     }
 
@@ -79,33 +107,29 @@ public class HomeController {
         return userId.toString();
     }
 
-
-
-    //TODO: refactorizar esta funcion en un util con un try
-    private Long getUserIdFromToken(String token) {
-        String secretKey = "yourSecretKey";
-//        String server2Audience = "server2";
-
-        //TODO: el secret key deberia ser un env param.
-        Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)
-//                .requireAudience(server2Audience)
-                .parseClaimsJws(token)
-                .getBody();
-
-        Long id = Long.parseLong(claims.get("userReference").toString());
-        return id;
-    }
-
-
     @PostMapping("/login_by_userId")
-    public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response) throws IOException {
+    public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response) throws IOException, URISyntaxException, NumberFormatException {
 
-        Long username = getUserIdFromToken(usernameToken);
+        //TODO: esto no deberia ser necesario para el cliente?
+        //TODO: Se debe obtener desde un .env
+        String url = "http://localhost:8080/jwt/getReference"; // Replace with the actual URL of the server's endpoint
 
-        logger.info("loginByUserId: " + username.toString());
+        //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String jsonPayload = "{\"tokenReference\": \""+usernameToken+"\"}";
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(new URI(url), requestEntity, String.class);
+        String data = responseEntity.getBody();
+        //TODO: hasta aqui
 
-        User user = userDetailsService.loadByUserId(username);
+        logger.info("loginByUserId: " + data);
+
+        User user = null;
+        if (data != null) {
+            Long userId = Long.parseLong(data);
+            user = userDetailsService.loadByUserId(userId);
+        }
 
         // Create an authentication token with the extra parameters
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);

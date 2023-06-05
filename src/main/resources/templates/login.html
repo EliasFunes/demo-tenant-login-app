@@ -56,7 +56,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<script type="text/javascript">
+<script th:inline="javascript">
     let stompClient = null;
     const qrImg = document.getElementById("qr-img-id")
 
@@ -80,23 +80,17 @@
     }
 
     async function getQR() {
-        postData(
-            'http://localhost:8080/jwt/user_tenant/authenticate',
-            { username: "eliasf", password: "Admin123" }) //TODO, quitar esto que esta hardcodeado
-            .then(async data => {
-                localStorage.setItem('Tenant-Auth-Token', `Bearer ${data.token}`)
-                let token = localStorage.getItem('Tenant-Auth-Token')
-                const response = await fetch('http://localhost:8080/qr/genQR', {headers: {Authorization: token}})
-                const blob = await response.blob()
-                const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
-                qrImg.src = url
-                const idQR = await uploadQR(token, blob)
-                connect_user(token, idQR)
-            })
-            .catch(e => {
-                console.log("error en autenticacion del tenant")
-                console.log(e)
-            })
+        const myToken = /*[[${token}]]*/ '';
+
+        localStorage.setItem('Tenant-Auth-Token', `Bearer ${myToken}`)
+        let token = localStorage.getItem('Tenant-Auth-Token')
+
+        const response = await fetch('http://localhost:8080/qr/genQR', {headers: {Authorization: token}})
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
+        qrImg.src = url
+        const idQR = await uploadQR(token, blob)
+        connect_user(token, idQR)
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -134,9 +128,6 @@
             console.log('Connected: ' + frame);
             stompClient.subscribe("/user/topic/messages", (message) => {
                 const csrf = document.querySelector('input[type="hidden"][name="_csrf"]').value;
-
-                //TODO: lo mas peligroso aqui es esta parte, el fetch, ver la forma de romper esto utilizando todo
-                // el ciclo desde el server que provee el cod QR.
                 fetch(`/login_by_userId?username=${message.body}&_csrf=${csrf}`, {method: "POST"})
                     .then(_ =>  window.location.href = '/')
                     .catch(error => {
