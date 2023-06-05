@@ -57,6 +57,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script th:inline="javascript">
+    const QRSERVERHOST = /*[[${qr_server_host}]]*/ '';
     let stompClient = null;
     const qrImg = document.getElementById("qr-img-id")
 
@@ -85,7 +86,7 @@
         localStorage.setItem('Tenant-Auth-Token', `Bearer ${myToken}`)
         let token = localStorage.getItem('Tenant-Auth-Token')
 
-        const response = await fetch('http://localhost:8080/qr/genQR', {headers: {Authorization: token}})
+        const response = await fetch(`http://${QRSERVERHOST}/qr/genQR`, {headers: {Authorization: token}})
         const blob = await response.blob()
         const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
         qrImg.src = url
@@ -102,7 +103,7 @@
         const file = new File([globalBlob], "qr.png", {type: globalBlob.type});
         const formData = new FormData()
         formData.append('qrCodeFile', file)
-        const response = await fetch('http://localhost:8080/qr/scanQR',
+        const response = await fetch(`http://${QRSERVERHOST}/qr/scanQR`,
             {
                 method: "POST",
                 headers: {
@@ -120,7 +121,7 @@
     }
 
     function connect_user(token, qrId) {
-        let socket = new SockJS('http://localhost:8080/wsc');
+        let socket = new SockJS(`http://${QRSERVERHOST}/wsc`);
         stompClient = Stomp.over(socket)
         //En este caso el username es opcional ya que para conectar al ws server usa el token de autorizacion
         let data = {/*username: "username", */'X-Authorization': token, "qrId": qrId}

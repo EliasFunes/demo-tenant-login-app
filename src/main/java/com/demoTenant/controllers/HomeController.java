@@ -42,6 +42,9 @@ public class HomeController {
     @Value("${qr.server.password}")
     private String qrServerPassword;
 
+    @Value("${qr.server.host}")
+    private String qrServerHost;
+
     //TODO: esto no deberia ser necesario para el cliente?
     @Autowired
     private RestTemplate restTemplate;
@@ -69,6 +72,7 @@ public class HomeController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userDetailsService.loadByUserId(userId);
         model.addAttribute("user", user);
+        model.addAttribute("qr_server_host", qrServerHost);
         return "index";
     }
 
@@ -76,8 +80,7 @@ public class HomeController {
     public String showLoginForm(Model model) throws URISyntaxException, JsonProcessingException {
 
         //TODO: esto no deberia ser necesario para el cliente?
-        //TODO: Se debe obtener desde un .env
-        String url = "http://localhost:8080/jwt/user_tenant/authenticate"; // Replace with the actual URL of the server's endpoint
+        String url = "http://"+qrServerHost+"/jwt/user_tenant/authenticate"; // Replace with the actual URL of the server's endpoint
 
         //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
         HttpHeaders headers = new HttpHeaders();
@@ -94,6 +97,7 @@ public class HomeController {
         String token = jsonNode.get("token").asText();
 
         model.addAttribute("token", token);
+        model.addAttribute("qr_server_host", qrServerHost);
         return "login";
     }
 
@@ -119,8 +123,7 @@ public class HomeController {
     public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response) throws IOException, URISyntaxException, NumberFormatException {
 
         //TODO: esto no deberia ser necesario para el cliente?
-        //TODO: Se debe obtener desde un .env
-        String url = "http://localhost:8080/jwt/getReference"; // Replace with the actual URL of the server's endpoint
+        String url = "http://"+qrServerHost+"/jwt/getReference"; // Replace with the actual URL of the server's endpoint
 
         //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
         HttpHeaders headers = new HttpHeaders();
