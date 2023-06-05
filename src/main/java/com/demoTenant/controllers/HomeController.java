@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,12 @@ import org.springframework.web.client.RestTemplate;
 
 @Controller
 public class HomeController {
+
+    @Value("${qr.server.username}")
+    private String qrServerUserName;
+
+    @Value("${qr.server.password}")
+    private String qrServerPassword;
 
     //TODO: esto no deberia ser necesario para el cliente?
     @Autowired
@@ -75,7 +82,8 @@ public class HomeController {
         //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String jsonPayload = "{\"username\": \""+"eliasf"+"\", \"password\": \""+"Admin123"+"\"}";
+
+        String jsonPayload = "{\"username\": \""+qrServerUserName+"\", \"password\": \""+qrServerPassword+"\"}";
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(new URI(url), requestEntity, String.class);
         String data = responseEntity.getBody();
