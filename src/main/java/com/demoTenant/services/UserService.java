@@ -3,6 +3,8 @@ package com.demoTenant.services;
 import com.demoTenant.dto.CreateUserRequest;
 import com.demoTenant.models.User;
 import com.demoTenant.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,8 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+    Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     UserRepository userRepository;
 
@@ -31,6 +35,8 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        logger.info("creando usuario");
 
         Long id = userRepository.save(user).getId();
         return userRepository.findById(id);

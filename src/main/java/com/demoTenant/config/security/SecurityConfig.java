@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Set permissions on endpoints
         http.authorizeRequests()
-                .antMatchers("/login", "/css/**", "/js/**", "/login_by_userId").permitAll()
+                .antMatchers("/login","/register", "/plugins/**", "/dist/**", "/login_by_userId").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin().loginPage("/login").successHandler(customAuthenticationSuccessHandler).permitAll()
                 .and().logout().logoutSuccessUrl("/login").permitAll();

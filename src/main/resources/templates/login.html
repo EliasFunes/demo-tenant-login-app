@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="dist/css/bootstrapv5/css/bootstrap.min.css">
 </head>
 <body>
 <div class="card">
@@ -27,22 +27,28 @@
 
             </div>
             <div class="col-6">
-                <h5 class="card-title">Please insert credentials</h5>
-                <p class="card-text">Credentials require a username and password.</p>
+                <h5 class="card-title">Por favor inserte sus credenciales</h5>
+                <p class="card-text">Las credenciales requieren un nombre de usuario y una contraseña.</p>
 
                 <div class="container">
                     <form class="form-signin" method="post" action="/login">
-                        <h2 class="form-signin-heading">Please sign in</h2>
+                        <h2 class="form-signin-heading">Por favor, registrese</h2>
 <!--                        <div class="alert alert-danger" role="alert">Bad credentials</div>        <p>-->
-                        <label for="username" class="sr-only">Username</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Username" required="" autofocus="">
+                        <label for="username" class="sr-only">Nombre de susuario</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Usuario" required="" autofocus="">
                     </p>
                         <p>
-                            <label for="password" class="sr-only">Password</label>
-                            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
+                            <label for="password" class="sr-only">Contraseña</label>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required="">
                         </p>
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-                        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                        <button class="btn btn-lg btn-primary btn-block" type="submit">Iniciar sesión</button>
+                        <br>
+                        <br>
+                        <p class="mb-0 text-right">
+                            <a href="register" class="text-center">Si aún no tienes una cuenta, te invitamos a registrarte
+                            </a>
+                        </p>
                     </form>
                 </div>
             </div>
@@ -52,7 +58,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="plugins/bootstrapv5/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -86,7 +92,7 @@
         localStorage.setItem('Tenant-Auth-Token', `Bearer ${myToken}`)
         let token = localStorage.getItem('Tenant-Auth-Token')
 
-        const response = await fetch(`http://${QRSERVERHOST}/qr/genQR`, {headers: {Authorization: token}})
+        const response = await fetch(`${QRSERVERHOST}/qr/genQR`, {headers: {Authorization: token}})
         const blob = await response.blob()
         const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
         qrImg.src = url
@@ -103,7 +109,7 @@
         const file = new File([globalBlob], "qr.png", {type: globalBlob.type});
         const formData = new FormData()
         formData.append('qrCodeFile', file)
-        const response = await fetch(`http://${QRSERVERHOST}/qr/scanQR`,
+        const response = await fetch(`${QRSERVERHOST}/qr/scanQR`,
             {
                 method: "POST",
                 headers: {
@@ -121,7 +127,7 @@
     }
 
     function connect_user(token, qrId) {
-        let socket = new SockJS(`http://${QRSERVERHOST}/wsc`);
+        let socket = new SockJS(`${QRSERVERHOST}/wsc`);
         stompClient = Stomp.over(socket)
         //En este caso el username es opcional ya que para conectar al ws server usa el token de autorizacion
         let data = {/*username: "username", */'X-Authorization': token, "qrId": qrId}

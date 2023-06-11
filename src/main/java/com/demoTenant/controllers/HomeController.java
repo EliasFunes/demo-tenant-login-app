@@ -72,15 +72,29 @@ public class HomeController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userDetailsService.loadByUserId(userId);
         model.addAttribute("user", user);
-        model.addAttribute("qr_server_host", qrServerHost);
         return "index";
     }
+
+    @GetMapping("/vincular_usuario")
+    public String showVincularUsuario(Model model, HttpSession session) {
+
+        logger.info("showVincularUsuario");
+
+        logger.info(session.getAttribute("userId").toString());
+
+        Long userId = (Long) session.getAttribute("userId");
+        User user = userDetailsService.loadByUserId(userId);
+        model.addAttribute("user", user);
+        model.addAttribute("qr_server_host", qrServerHost);
+        return "vincularUsuario";
+    }
+
 
     @GetMapping("/login")
     public String showLoginForm(Model model) throws URISyntaxException, JsonProcessingException {
 
         //TODO: esto no deberia ser necesario para el cliente?
-        String url = "http://"+qrServerHost+"/jwt/user_tenant/authenticate"; // Replace with the actual URL of the server's endpoint
+        String url = qrServerHost+"/jwt/user_tenant/authenticate"; // Replace with the actual URL of the server's endpoint
 
         //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
         HttpHeaders headers = new HttpHeaders();
@@ -120,12 +134,14 @@ public class HomeController {
     }
 
     @PostMapping("/login_by_userId")
-    public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response) throws IOException, URISyntaxException, NumberFormatException {
+    public void loginByUserId(@RequestParam("username") String usernameToken, HttpServletResponse response)
+            throws IOException, URISyntaxException, NumberFormatException {
 
         //TODO: esto no deberia ser necesario para el cliente?
-        String url = "http://"+qrServerHost+"/jwt/getReference"; // Replace with the actual URL of the server's endpoint
+        String url = qrServerHost+"/jwt/getReference";
 
-        //TODO: Desde aqui - debe ser un codigo injectado con parametros e instalable desde maven.
+        //TODO: Desde aqui - debe ser un codigo inyectado con parametros
+        // e instalable desde maven repository, o simil.
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         String jsonPayload = "{\"tokenReference\": \""+usernameToken+"\"}";
