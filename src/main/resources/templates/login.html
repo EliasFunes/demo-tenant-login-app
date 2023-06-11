@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="dist/css/bootstrapv5/css/bootstrap.min.css">
+</head>
+<body>
+<div class="card">
+    <h5 class="card-header">Login</h5>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card" style="width: 18rem;">
+                            <img src="..." class="card-img-top" alt="..." id="qr-img-id">
+                            <div class="card-body">
+                                <h5 class="card-title">Código QR</h5>
+                                <p class="card-text">Escanear código QR para acceder.</p>
+                                <input type="hidden" id="id-qr">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-6">
+                <h5 class="card-title">Por favor inserte sus credenciales</h5>
+                <p class="card-text">Las credenciales requieren un nombre de usuario y una contraseña.</p>
+
+                <div class="container">
+                    <form class="form-signin" method="post" action="/login">
+                        <h2 class="form-signin-heading">Por favor, registrese</h2>
+<!--                        <div class="alert alert-danger" role="alert">Bad credentials</div>        <p>-->
+                        <label for="username" class="sr-only">Nombre de susuario</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Usuario" required="" autofocus="">
+                    </p>
+                        <p>
+                            <label for="password" class="sr-only">Contraseña</label>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required="">
+                        </p>
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <button class="btn btn-lg btn-primary btn-block" type="submit">Iniciar sesión</button>
+                        <br>
+                        <br>
+                        <p class="mb-0 text-right">
+                            <a href="register" class="text-center">Si aún no tienes una cuenta, te invitamos a registrarte
+                            </a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<script src="plugins/bootstrapv5/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script th:inline="javascript">
+    const QRSERVERHOST = /*[[${qr_server_host}]]*/ '';
+    let stompClient = null;
+    const qrImg = document.getElementById("qr-img-id")
+
+    // Ejemplo implementando el metodo POST:
+    async function postData(url = '', data = {}) {
+        // Opciones por defecto estan marcadas con un *
+        const response = await fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+            headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: 'follow', // manual, *follow, error
+            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    async function getQR() {
+        const myToken = /*[[${token}]]*/ '';
+
+        localStorage.setItem('Tenant-Auth-Token', `Bearer ${myToken}`)
+        let token = localStorage.getItem('Tenant-Auth-Token')
+
+        const response = await fetch(`${QRSERVERHOST}/qr/genQR`, {headers: {Authorization: token}})
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
+        qrImg.src = url
+        const idQR = await uploadQR(token, blob)
+        connect_user(token, idQR)
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        getQR()
+    }, false);
+
+
+    async function uploadQR(token, globalBlob) {
+        const file = new File([globalBlob], "qr.png", {type: globalBlob.type});
+        const formData = new FormData()
+        formData.append('qrCodeFile', file)
+        const response = await fetch(`${QRSERVERHOST}/qr/scanQR`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: token
+                },
+                body: formData
+            }
+        ).then((res) => {
+            return res.text()
+        }).catch(e => {
+            console.log("error")
+            console.log(e)
+        })
+        return response
+    }
+
+    function connect_user(token, qrId) {
+        let socket = new SockJS(`${QRSERVERHOST}/wsc`);
+        stompClient = Stomp.over(socket)
+        //En este caso el username es opcional ya que para conectar al ws server usa el token de autorizacion
+        let data = {/*username: "username", */'X-Authorization': token, "qrId": qrId}
+        stompClient.connect(data, (frame) => {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe("/user/topic/messages", (message) => {
+                const csrf = document.querySelector('input[type="hidden"][name="_csrf"]').value;
+                fetch(`/login_by_userId?username=${message.body}&_csrf=${csrf}`, {method: "POST"})
+                    .then(_ =>  window.location.href = '/')
+                    .catch(error => {
+                        console.error(error);
+                    });
+            })
+        }, function(error) {
+            console.log(error);
+        })
+
+    }
+
+</script>
+</body>
+</html>

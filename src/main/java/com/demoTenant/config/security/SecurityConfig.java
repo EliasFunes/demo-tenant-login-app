@@ -1,85 +1,63 @@
 package com.demoTenant.config.security;
 
-import com.demoTenant.services.JwtUserDetailsService;
+import com.demoTenant.services.UserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletResponse;
-
+@Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private JwtUserDetailsService jwtUserDetailsService;
+    //TODO: esto no deberia ser necesario para el cliente?
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Autowired
-    private JwtTokenFilter jwtTokenFilter;
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(jwtUserDetailsService);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        auth.userDetailsService(userDetailsService);
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // Enable CORS and disable CSRF
-        http = http.cors().and().csrf().disable();
-
-        // Set session management to stateless
-        http = http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and();
-
-        // Set unauthorized requests exception handler
-        http = http
-                .exceptionHandling()
-                .authenticationEntryPoint(
-                        (request, response, ex) -> {
-                            response.sendError(
-                                    HttpServletResponse.SC_UNAUTHORIZED,
-                                    ex.getMessage()
-                            );
-                        }
-                )
-                .and();
+        //sin este no permite hacer una ajax request a los endpoints ya que desea verificar el csrf que no esta incluido en el ajax.
+        //http.csrf().disable();
 
         // Set permissions on endpoints
         http.authorizeRequests()
-            // Our public endpoints
-            .antMatchers("/jwt/**").permitAll()
-            .antMatchers("/webjars/**").permitAll()
-            .antMatchers("/login.html").permitAll()
-            .antMatchers("/index.html").permitAll()
-            // Our private endpoints
-            .anyRequest().authenticated();
-
-        // Add JWT token filter
-        http.addFilterBefore(
-                jwtTokenFilter,
-                UsernamePasswordAuthenticationFilter.class
-        );
+                .antMatchers("/login","/register", "/plugins/**", "/dist/**", "/login_by_userId").permitAll()
+                .anyRequest().authenticated()
+                .and().formLogin().loginPage("/login").successHandler(customAuthenticationSuccessHandler).permitAll()
+                .and().logout().logoutSuccessUrl("/login").permitAll();
 
     }
 
     @Override @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vincular Usuario</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+    <!-- IonIcons -->
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="dist/css/adminlte.min.css">
+
+
+    <base href="./">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
+</head>
+<body class="hold-transition sidebar-mini">
+<input type="hidden" id="csrfToken" th:value="${_csrf.token}" />
+<!--<noscript>
+  <h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+  enabled. Please enable
+  Javascript and reload this page!</h2></noscript>-->
+
+<div class="wrapper">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="/" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="#" class="nav-link">Contact</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="/" class="brand-link">
+            <!--<img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">-->
+            <span class="brand-text font-weight-light">Tenant Demo</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="dist/img/default-avatar.png" class="img-circle elevation-2" alt="User Image">
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block" th:text="${user.username}"></a>
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                    <!-- Add icons to the links using the .nav-icon class
+                         with font-awesome or any other icon font library -->
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="nav-icon fas fa-edit"></i>
+                            <p>
+                                Formularios
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="/vincular_usuario" class="nav-link active">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Vincular usuario</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="javascript:void(0);" onclick="logout();" class="nav-link">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <p>
+                                Cerrar sesión
+                            </p>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0"><span th:text="${user.username}"></span></h1>
+                    </div><!-- /.col -->
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="#">Pag. Principal</a></li>
+                        </ol>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+
+<!--                        TODO: aca poner nuestro formulario-->
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <button type="button" id="modalButton" class="btn btn-primary">Vincular con App-QR</button>
+                                <!--          <button type="submit" class="btn btn-primary">Submit</button> -->
+                            </div>
+                        </form>
+
+
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+    </aside>
+    <!-- /.control-sidebar -->
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
+        All rights reserved.
+        <div class="float-right d-none d-sm-inline-block">
+            <b>Version</b> 3.2.0
+        </div>
+    </footer>
+</div>
+
+
+
+<div class="modal" tabindex="-1" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Credenciales App-QR</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <form id="form">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Usuario App-QR</label>
+                        <input type="text" class="form-control" id="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña App-QR</label>
+                        <input type="password" class="form-control" id="password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Vincular</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE -->
+<script src="dist/js/adminlte.min.js"></script>
+
+<script type="application/javascript">
+    function logout() {
+        var csrfToken = document.getElementById("csrfToken").value;
+
+        fetch("/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrfToken
+            }
+        })
+            .then(function(response) {
+                if (response.ok) {
+                    // Logout successful
+                    console.log("Logout successful");
+                    window.location.href = "/login"; // Redirect to the login page
+                } else {
+                    // Logout failed
+                    console.log("Logout failed");
+                }
+            })
+            .catch(function(error) {
+                console.log("Error: " + error);
+            });
+    }
+</script>
+
+
+<script th:inline="javascript">
+    const QRSERVERHOST = /*[[${qr_server_host}]]*/ '';
+    var myModal = new bootstrap.Modal(document.getElementById('myModal'))
+    var username = document.getElementById('username')
+    var password = document.getElementById('password')
+    var modalButton = document.getElementById('modalButton')
+    const form = document.getElementById("form")
+    const tenantToken = localStorage.getItem('Tenant-Auth-Token')
+
+    async function postData(url = '', data = {}, headers = {'Content-Type': 'application/json'}) {
+        // Opciones por defecto estan marcadas con un *
+        const response = await fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+            headers: headers,
+            redirect: 'follow', // manual, *follow, error
+            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    async function getWithCredentials(url = '', headers = {'Content-Type': 'application/json'}) {
+        // Opciones por defecto estan marcadas con un *
+        const response = await fetch(url, {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'include', // include, *same-origin, omit
+            headers: headers,
+            redirect: 'follow', // manual, *follow, error
+            referrerPolicy: 'no-referrer' // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+
+
+    modalButton.addEventListener('click', (e) => {
+        myModal.toggle()
+    })
+
+
+    //AJAX PARA AUTENTICAR
+    form.addEventListener("submit", function(evt) {
+        evt.preventDefault()
+        postData(
+            `${QRSERVERHOST}/jwt/user_lessor/authenticate`,
+            { username: username.value, password: password.value })
+            .then(async data => {
+                let lessortoken = data.token
+
+                let reference = await getWithCredentials('/user/id').catch(e => {
+                    console.log("error")
+                    console.log(e)
+                })
+
+                console.log("reference", reference)
+
+                postData(
+                    'http://localhost:8080/relation',
+                    {lessorToken: lessortoken, reference: reference},
+                    {'Content-Type': 'application/json', 'Authorization': tenantToken}
+                )
+                    .then(data => {
+                        console.log("esperando que relacione")
+                        console.log(data) // JSON data parsed by `data.json()` call
+                        myModal.toggle()
+                        alert("Usuario relacionado a la App-QR")
+                    })
+                    .catch(e => {
+                        console.log("error")
+                        console.log(e)
+                        alert("Error al relacionar usuario, verifique sus credenciales, o la existencia del mismo en la App-QR")
+                    })
+            })
+            .catch(e => {
+                console.log("error")
+                console.log(e)
+                alert("Error al relacionar usuario, verifique sus credenciales, o la existencia del mismo en la App-QR")
+            })
+    })
+
+</script>
+
+
+</body>
+</html>
