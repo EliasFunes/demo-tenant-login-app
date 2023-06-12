@@ -59,93 +59,30 @@
 </div>
 
 <script src="plugins/bootstrapv5/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js" integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<script th:inline="javascript">
+<!--TODO: NO LOGRO PODER UTILIZAR EL BUNDLE GENERADO POR WEBPACK-->
+<!--<script src="plugins/qr-stomp-ws/dist/bundle.js"></script>-->
+
+<script th:inline="javascript" type="module">
+    // TODO: ESTO NO DEBERIA SER NECESARIO NI EL TYPE MODULE SI FUNCIONARA EL BUNDLE.JS
+    import QRStompWS  from './plugins/qr-stomp-ws/src/QRStompWS.js';
+
     const QRSERVERHOST = /*[[${qr_server_host}]]*/ '';
-    let stompClient = null;
-    const qrImg = document.getElementById("qr-img-id")
-
-    // Ejemplo implementando el metodo POST:
-    async function postData(url = '', data = {}) {
-        // Opciones por defecto estan marcadas con un *
-        const response = await fetch(url, {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
-            mode: 'cors', // no-cors, *cors, same-origin
-            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-            credentials: 'same-origin', // include, *same-origin, omit
-            headers: {
-                'Content-Type': 'application/json'
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            redirect: 'follow', // manual, *follow, error
-            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-            body: JSON.stringify(data) // body data type must match "Content-Type" header
-        });
-        return response.json(); // parses JSON response into native JavaScript objects
+    const MYTOKEN = /*[[${token}]]*/ '';
+    const qrImg = document.getElementById("qr-img-id");
+    const callback = function(message) {
+        const csrf = document.querySelector('input[type="hidden"][name="_csrf"]').value;
+        fetch(`/login_by_userId?username=${message.body}&_csrf=${csrf}`, {method: "POST"})
+            .then(_ =>  window.location.href = '/')
+            .catch(error => {
+                console.error(error);
+            });
     }
 
-    async function getQR() {
-        const myToken = /*[[${token}]]*/ '';
-
-        localStorage.setItem('Tenant-Auth-Token', `Bearer ${myToken}`)
-        let token = localStorage.getItem('Tenant-Auth-Token')
-
-        const response = await fetch(`${QRSERVERHOST}/qr/genQR`, {headers: {Authorization: token}})
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob/*.slice(0, 4000)*/)
-        qrImg.src = url
-        const idQR = await uploadQR(token, blob)
-        connect_user(token, idQR)
-    }
-
+    const qRStompWS = new QRStompWS(QRSERVERHOST, MYTOKEN, qrImg, callback)
     document.addEventListener('DOMContentLoaded', function () {
-        getQR()
+        qRStompWS.getQR()
     }, false);
-
-
-    async function uploadQR(token, globalBlob) {
-        const file = new File([globalBlob], "qr.png", {type: globalBlob.type});
-        const formData = new FormData()
-        formData.append('qrCodeFile', file)
-        const response = await fetch(`${QRSERVERHOST}/qr/scanQR`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: token
-                },
-                body: formData
-            }
-        ).then((res) => {
-            return res.text()
-        }).catch(e => {
-            console.log("error")
-            console.log(e)
-        })
-        return response
-    }
-
-    function connect_user(token, qrId) {
-        let socket = new SockJS(`${QRSERVERHOST}/wsc`);
-        stompClient = Stomp.over(socket)
-        //En este caso el username es opcional ya que para conectar al ws server usa el token de autorizacion
-        let data = {/*username: "username", */'X-Authorization': token, "qrId": qrId}
-        stompClient.connect(data, (frame) => {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe("/user/topic/messages", (message) => {
-                const csrf = document.querySelector('input[type="hidden"][name="_csrf"]').value;
-                fetch(`/login_by_userId?username=${message.body}&_csrf=${csrf}`, {method: "POST"})
-                    .then(_ =>  window.location.href = '/')
-                    .catch(error => {
-                        console.error(error);
-                    });
-            })
-        }, function(error) {
-            console.log(error);
-        })
-
-    }
 
 </script>
 </body>
