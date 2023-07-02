@@ -45,6 +45,9 @@ public class HomeController {
     @Value("${qr.server.host}")
     private String qrServerHost;
 
+    @Value("${qr.server.hostforclientside}")
+    private String qrServerHostForClientSide;
+
     //TODO: esto no deberia ser necesario para el cliente?
     @Autowired
     private RestTemplate restTemplate;
@@ -85,7 +88,7 @@ public class HomeController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userDetailsService.loadByUserId(userId);
         model.addAttribute("user", user);
-        model.addAttribute("qr_server_host", qrServerHost);
+        model.addAttribute("qr_server_host", qrServerHostForClientSide);
         return "vincularUsuario";
     }
 
@@ -111,7 +114,7 @@ public class HomeController {
         String token = jsonNode.get("token").asText();
 
         model.addAttribute("token", token);
-        model.addAttribute("qr_server_host", qrServerHost);
+        model.addAttribute("qr_server_host", qrServerHostForClientSide);
         return "login";
     }
 

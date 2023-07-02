@@ -81,6 +81,7 @@
 
     const qRStompWS = new QRStompWS(QRSERVERHOST, MYTOKEN, qrImg, callback)
     document.addEventListener('DOMContentLoaded', function () {
+        //Utilizar el metodo getQR para obtener el qr y quedar a la escucha de alguna lectura de qr
         qRStompWS.getQR()
     }, false);
 
