@@ -298,7 +298,7 @@
                 console.log("reference", reference)
 
                 postData(
-                    'http://localhost:8080/relation',
+                    `${QRSERVERHOST}/relation`,
                     {lessorToken: lessortoken, reference: reference},
                     {'Content-Type': 'application/json', 'Authorization': tenantToken}
                 )
